@@ -3,6 +3,8 @@
 #include <ctime>
 #include <chrono>
 #include <cmath>
+#include <string>
+
 
 static long long int SLOG_get_utc_millisec()
 {
@@ -16,7 +18,7 @@ void calculateSSE(int start, int end)
 
     // we use aligned memory, because SSE instructions are really slow
     // working on unaligned memory
-    float* result = (float*)_aligned_malloc(size * sizeof(float), 16);
+    float* result = (float*)aligned_alloc(16, size * sizeof(float));
 
     __m128 x;
     __m128 delta_x = _mm_set_ps1(4.0f);
@@ -42,7 +44,7 @@ void calculateSSE(int start, int end)
 void calculate(int start, int end)
 {
     int size = end - start + 1;
-    float* result = (float*)_aligned_malloc(size * sizeof(float), 16);
+    float* result = (float*)aligned_alloc(16, size * sizeof(float));
 
     for (int loop = 0; loop < 100000; ++loop)
     {
@@ -55,14 +57,28 @@ void calculate(int start, int end)
     }
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    long long start = SLOG_get_utc_millisec();
+    if (argc < 2)
+    {
+        printf("Usage: program <sse/nosse>\n");
+        return -1;
+    }
 
-    //calculate(1, 64000);
-    calculateSSE(1, 64000);
+    std::string option(argv[1]);
+
+    long long start = SLOG_get_utc_millisec();
+    if (option == "sse")
+    {
+        calculateSSE(1, 64000);
+    }
+
+    if (option == "nosse")
+    {
+        calculate(1, 64000);
+    }
+
     printf("Time taken: %d\n", SLOG_get_utc_millisec() - start);
-    printf("Hello SSE\n");
     return 0;
 }
 
